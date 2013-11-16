@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/home/skuarch/NetBeansProjects/wsa_webMonitor/src/model/common/WebMonitor.java</file>
+            <file>file:/home/skuarch/NetBeansProjects/wsa_webMonitor/src/model/common/ModelTask.java</file>
+            <file>file:/home/skuarch/NetBeansProjects/wsa_webMonitor/src/model/common/TaskProccessor.java</file>
+            <file>file:/home/skuarch/NetBeansProjects/wsa_webMonitor/src/model/common/TaskScheduler.java</file>
+            <file>file:/home/skuarch/NetBeansProjects/wsa_webMonitor/test/model/net/HTTPConnectorTest.java</file>
+            <file>file:/home/skuarch/NetBeansProjects/wsa_webMonitor/src/model/net/HTTPConnector.java</file>
+            <file>file:/home/skuarch/NetBeansProjects/wsa_webMonitor/src/model/common/RegisterApplication.java</file>
+        </group>
+    </open-files>
+</project-private>
