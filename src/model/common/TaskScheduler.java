@@ -3,6 +3,7 @@ package model.common;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import model.beans.Alarm;
 import model.beans.Task;
 import org.apache.log4j.Logger;
 
@@ -17,8 +18,8 @@ public class TaskScheduler extends Thread {
     private TimerTask timerTask = null;
     private Timer timer = null;
     private int failures = 0;
-    private boolean sendNotificationFailure = false;
     private SiteChecker sc = null;
+    private int responseCode = 0;
 
     //==========================================================================
     public TaskScheduler(Task task) {
@@ -29,7 +30,7 @@ public class TaskScheduler extends Thread {
     //==========================================================================
     @Override
     public void run() {
-
+        
         runScheduler();
 
     } // end run
@@ -44,10 +45,11 @@ public class TaskScheduler extends Thread {
 
                 try {
 
-                    setName(task.getName());
-                    sc = new SiteChecker(task.getUrl(), task.getMethod(), task.getTimeout());
-                    System.out.println(sc.isSiteAlive());
-                    System.out.println(sc.getResponseCode());
+                    //setName of this thread
+                    setName(task.getName());                    
+
+                    //proccess alarm
+                    proccessAlarm();
 
                 } catch (IOException e) {
                     logger.error("runScheduler", e);
@@ -62,8 +64,73 @@ public class TaskScheduler extends Thread {
     } // end runScheduler 
 
     //==========================================================================
+    private boolean isAlive(Task task) throws IOException {
+
+        boolean isAlive = false;
+        sc = new SiteChecker(task.getUrl(), task.getMethod(), task.getTimeout());
+        isAlive = sc.isSiteAlive();
+
+        return isAlive;
+    }
+
+    //==========================================================================
+    private void proccessAlarm() throws IOException {
+
+        boolean isAlive = false;
+
+        //check if the site is alive
+        isAlive = isAlive(task);
+
+        //get response code
+        responseCode = getResponseCode();
+
+        if (!isAlive) {
+
+            failures++;
+            System.out.println("failures " + failures  + " task " +task.getName());
+
+            if (task.getAlarmLevel() != 0) {
+
+                if (failures >= task.getTrigger() - 1) {
+
+                    failures = 0;                    
+
+                    Alarm alarm = ModelAlarm.createDefaultAlarm(
+                            "web monitor " + task.getName() + " threw an alarm",
+                            task.getAlarmLevel(),
+                            "web " + task.getUrl() + " is responding code " + responseCode
+                    );
+                    
+                    System.out.println("sending alarm task " + task.getName());
+                    sendAlarm(alarm);
+
+                }
+
+            }
+        }
+
+    } // end proccessAlarm
+
+    //==========================================================================
+    private void sendAlarm(Alarm alarm) {
+
+        if (alarm == null) {
+            throw new IllegalArgumentException("alarm is null");
+        }
+
+        //AlarmSender
+        new AlarmSender().sendAlarm(alarm);
+
+    } // end sendAlarm
+
+    //==========================================================================
+    private int getResponseCode() throws IOException {
+        return sc.getResponseCode();
+    }
+
+    //==========================================================================
     public void stopSchedule() {
         timer.cancel();
-    }
+    } // end stopSchedule
 
 } // end class

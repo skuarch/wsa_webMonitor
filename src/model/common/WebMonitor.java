@@ -32,14 +32,20 @@ public class WebMonitor {
             request = json.getString("request");
 
             switch (request) {
+                case "changeStatusTask":
+                    new TaskProccessor().makeTaskProccessChange(jsonString, modelSocket);
+                    break;                
                 case "create task":
                     new TaskProccessor().makeTaskProccessCreate(jsonString, modelSocket);
                     break;
-                case "deleteTask":                    
+                case "deleteTask":
                     //new TaskProccessor().makeTaskProccessDelete(jsonString, modelSocket);
                     break;
-                case "getTasks":
-                    new TaskProccessor().getTasks(jsonString, modelSocket);
+                case "getEnabledTasks":
+                    new TaskProccessor().getEnabledTasks(jsonString, modelSocket);
+                    break;
+                case "getAllTasks":
+                    new TaskProccessor().getAllTasks(jsonString, modelSocket);
                     break;
                 default:
                     logger.error("undefined request " + jsonString);

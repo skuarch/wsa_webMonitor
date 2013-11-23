@@ -9,7 +9,7 @@ import model.net.HTTPConnector;
  */
 public class SiteChecker extends HTTPConnector {
 
-    private int code = -1;
+    private int code = 522;
     
     //==========================================================================
     public SiteChecker(String stringUrl, String method, int timeout) {
@@ -17,7 +17,7 @@ public class SiteChecker extends HTTPConnector {
     } // end SiteChecker
 
     //==========================================================================
-    public boolean isSiteAlive() {
+    public synchronized boolean isSiteAlive() {
 
         boolean flag = false;
 

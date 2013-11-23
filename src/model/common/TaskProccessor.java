@@ -18,6 +18,62 @@ public class TaskProccessor {
     } // end TaskProccessor
 
     //==========================================================================
+    public void makeTaskProccessChange(String jsonString, ModelSocket modelSocket) {
+
+        JSONObject jsono = null;
+        Task task = null;
+        TaskScheduler ts = null;
+
+        try {
+
+            jsono = new JSONObject(jsonString);
+
+            //create bean
+            task = ModelTask.getTask(jsono.getLong("id"));
+
+            if (task == null) {
+                modelSocket.send(getJsonResponse("the task doesn't exist", false, "changed"));
+                return;
+            }
+
+            //change status of the task and stop or run scheduler
+            if (task.getStatus() == 0) {
+
+                //the task is stoped
+                task.setStatus(1);
+                
+                //run scheduler
+                ts = ModelTaskScheduler.createTaskScheduler(task);
+                ModelTaskScheduler.runTaskScheduler(ts);
+                ModelTaskScheduler.holdTaskScheduler(ts);
+
+            } else {
+
+                task.setStatus(0);
+                //stop scheduler
+                ts = ModelTaskScheduler.getTaskScheduler(task.getName());
+                ts.stopSchedule();
+                TaskContainer.removeTaskScheduler(task.getName());
+
+            }
+
+            //update the task in DB
+            ModelTask.updateTask(task);
+            modelSocket.send(getJsonResponse("the task was changed succefully", true, "changed"));
+
+        } catch (ParseException pe) {
+            logger.error("makeTaskProccess", pe);
+            modelSocket.send(getJsonResponse(pe.getMessage(), false, "changed"));
+        } catch (Exception e) {
+            logger.error("makeTaskProccess", e);
+            modelSocket.send(getJsonResponse(e.getMessage(), false, "changed"));
+        } finally {
+            modelSocket.closeStreams();
+        }
+
+    } // end makeTaskProccessChange
+
+    //==========================================================================
     /**
      * this method has all the commands or instructions to create all the
      * process for make the task
@@ -32,33 +88,33 @@ public class TaskProccessor {
 
         try {
 
-            //create bean the task
+            //create bean
             task = ModelTask.createTask(jsonString);
 
             //validations
             if (ModelTask.existsTask(task.getName())) {
                 //the task already exists
-                modelSocket.send(getJsonResponse("the task already exists", false));
+                modelSocket.send(getJsonResponse("the task already exists", false, "created"));
                 return;
             }
 
             //save the task in DB
             ModelTask.saveTask(task);
             //create a scheduler
-            ts = ModelTask.createTaskScheduler(task);
+            ts = ModelTaskScheduler.createTaskScheduler(task);
             //save the scheduler in a static context
-            ModelTask.holdTaskScheduler(ts);
+            ModelTaskScheduler.holdTaskScheduler(ts);
             //run the scheduler
-            ModelTask.runTaskScheduler(ts);
+            ModelTaskScheduler.runTaskScheduler(ts);
             //send response to the client            
-            modelSocket.send(getJsonResponse("the task was created succefully", true));            
+            modelSocket.send(getJsonResponse("the task was created succefully", true, "created"));
 
         } catch (ParseException pe) {
             logger.error("makeTaskProccess", pe);
-            modelSocket.send(getJsonResponse(pe.getMessage(), false));
+            modelSocket.send(getJsonResponse(pe.getMessage(), false, "created"));
         } catch (Exception e) {
             logger.error("makeTaskProccess", e);
-            modelSocket.send(getJsonResponse(e.getMessage(), false));
+            modelSocket.send(getJsonResponse(e.getMessage(), false, "created"));
         } finally {
             modelSocket.closeStreams();
         }
@@ -66,7 +122,7 @@ public class TaskProccessor {
     } // end makeTaskProccessCreate
 
     //==========================================================================
-    public void getTasks(String jsonString, ModelSocket modelSocket) throws Exception {
+    public void getEnabledTasks(String jsonString, ModelSocket modelSocket) throws Exception {
 
         //tasks in json format
         String tasks = null;
@@ -85,11 +141,30 @@ public class TaskProccessor {
     } // end getJsonTask
 
     //==========================================================================
-    private String getJsonResponse(String message, boolean isGood) {
+    public void getAllTasks(String jsonString, ModelSocket modelSocket) throws Exception {
+
+        //tasks in json format
+        String tasks = null;
+
+        try {
+
+            tasks = ModelTask.getJsonAllTasks();
+            modelSocket.send(tasks);
+
+        } catch (Exception e) {
+            logger.error("getTasks", e);
+        } finally {
+            modelSocket.closeStreams();
+        }
+
+    } // end getJsonTask
+
+    //==========================================================================
+    private String getJsonResponse(String message, boolean isGood, String request) {
 
         JSONObject jsono = new JSONObject();
         jsono.put("message", message);
-        jsono.put("created", isGood);
+        jsono.put(request, isGood);
 
         return jsono.toString();
 

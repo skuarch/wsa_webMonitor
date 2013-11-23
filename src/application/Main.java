@@ -1,7 +1,9 @@
 package application;
 
+import java.io.IOException;
 import model.common.RegisterApplication;
 import model.common.StartServer;
+import model.common.TaskRunner;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -24,15 +26,18 @@ public class Main {
             PropertyConfigurator.configure("configuration/log4j.properties");
             Runtime.getRuntime().addShutdownHook(shutdownHook);
             logger.info("*** starting wsa_urlMonitor ***");
-
+            
             //register this server into the main server
             //and print the message returned by the main server
-            new RegisterApplication().register();            
+            new RegisterApplication().register();  
             
+            //if this program has a tasks enables, those tasks should be running.
+            new TaskRunner().runTasks();
+  
             //start server
             new StartServer().run();
             
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error("main", e);
         }
         

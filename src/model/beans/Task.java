@@ -124,4 +124,10 @@ public class Task implements Serializable {
         this.alarmLevel = alarmLevel;
     }
 
+    @Override
+    public String toString() {
+        return "id= " + id + " name=" + name + " url="+url + " method=" + method + " trigger=" + trigger + " period=" + period + " timeout=" + timeout + " status=" + status + " alarmLevel=" + alarmLevel;
+    }
+    
+    
 } // end class

@@ -26,7 +26,7 @@ public class ModelTask {
 
     //==========================================================================
     /**
-     * create a task from bean.
+     * create a task from string in json format.
      *
      * @param jsonString String
      * @return Task
@@ -87,7 +87,7 @@ public class ModelTask {
 
     //==========================================================================
     /**
-     * return a ArrayList with task enables.
+     * return a ArrayList with enabled task.
      *
      * @return ArrayList<Task>
      * @throws Exception
@@ -122,6 +122,56 @@ public class ModelTask {
         return new DAO().get(id, new Task());
 
     } // end getTask
+
+    //==========================================================================
+    public static String getJsonAllTasks() throws Exception {
+
+        JSONObject response = new JSONObject();
+        JSONArray ids = new JSONArray();
+        JSONArray names = new JSONArray();
+        JSONArray url = new JSONArray();
+        JSONArray method = new JSONArray();
+        JSONArray trigger = new JSONArray();
+        JSONArray period = new JSONArray();
+        JSONArray timeout = new JSONArray();
+        JSONArray status = new JSONArray();
+        JSONArray alarmLevel = new JSONArray();
+        ArrayList<Task> tasks = null;
+
+        try {
+
+            tasks = ModelTask.getTasks();
+
+            for (Task task : tasks) {
+                ids.put(task.getId());
+                names.put(task.getName());
+                url.put(task.getUrl());
+                method.put(task.getMethod());
+                trigger.put(task.getTrigger());
+                period.put(task.getPeriod());
+                timeout.put(task.getTimeout());
+                status.put(task.getStatus());
+                alarmLevel.put(task.getAlarmLevel());
+            }
+
+            response.put("rows", tasks.size());
+            response.put("ids", ids);
+            response.put("names", names);
+            response.put("url", url);
+            response.put("method", method);
+            response.put("trigger", trigger);
+            response.put("period", period);
+            response.put("timeout", timeout);
+            response.put("status", status);
+            response.put("alarmLevel", alarmLevel);
+
+        } catch (Exception e) {
+            throw e;
+        }
+
+        return response.toString();
+
+    } // end getJsonAllTasks
 
     //==========================================================================
     /**
@@ -238,47 +288,15 @@ public class ModelTask {
     } // end getJsonTasks
 
     //==========================================================================
-    public static void holdTaskScheduler(TaskScheduler ts) {
+    public static void updateTask(Task task) throws Exception {
 
-        if (ts == null) {
-            throw new IllegalArgumentException("taskScheduler is null");
-        }
-
-        TaskContainer.addTaskScheduler(ts);
-    } // end holdTask
-
-    //==========================================================================
-    public static TaskScheduler createTaskScheduler(Task task) {
-        
         if (task == null) {
             throw new IllegalArgumentException("task is null");
         }
         
-        return new TaskScheduler(task);
-    }
+        System.out.println("updating " + task);
+        new DAO().update(task);
 
-    //==========================================================================
-    public static void runTaskScheduler(TaskScheduler ts) {
-        
-        if (ts == null) {
-            throw new IllegalArgumentException("taskScheduler is null");
-        }
-        
-        Thread t = new Thread(ts);
-        t.start();
-        t.setName(ts.getName());
-    } // end runTaskScheduler
-    
-    //==========================================================================
-    public static void stopTaskScheduler(String name){
-        
-        if (name == null || name.length() < 0) {
-            throw new IllegalArgumentException("name is null");
-        }
-        
-        TaskScheduler ts = TaskContainer.getTaskScheduler(name);
-        ts.stopSchedule();
-        
-    } // end stopTaskScheduler
+    } // end updateTask
 
 } // end class

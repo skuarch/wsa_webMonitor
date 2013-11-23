@@ -1,9 +1,8 @@
 package model.common;
 
-import model.beans.Register;
 import com.google.gson.Gson;
 import java.io.IOException;
-import java.net.ConnectException;
+import model.beans.Alarm;
 import model.net.Connection;
 import org.apache.log4j.Logger;
 import model.util.PropertyUtilities;
@@ -12,57 +11,39 @@ import model.util.PropertyUtilities;
  *
  * @author skuarch
  */
-public class RegisterApplication {
+public class AlarmSender {
 
-    private static final Logger logger = Logger.getLogger(RegisterApplication.class);
+    private static final Logger logger = Logger.getLogger(AlarmSender.class);
     private final String CONFIGURATION_FILE = "configuration/application.properties";
     private Connection connection = null;
     private PropertyUtilities pu = null;
     private String host = null;
     private int port;
     private String context = null;
-    private String uri = null;
-    private Register register = null;
-    private String message = null;
+    private String uri = null;    
 
     //==========================================================================
-    public RegisterApplication() {
+    public AlarmSender() {
     } // end Register
 
     //==========================================================================    
-    public void register() {
+    public void sendAlarm(Alarm alarm) {
+
+        if (alarm == null) {
+            throw new IllegalArgumentException("alarm is null");
+        }
 
         try {
 
             pu = new PropertyUtilities(CONFIGURATION_FILE);
             initVariables();
 
-            register = new Register();
-            register.setName(pu.getStringPropertie("url.monitor.name"));
-            register.setDescription(pu.getStringPropertie("url.monitor.description"));
-            register.setIp(pu.getStringPropertie("url.monitor.ip"));
-            register.setPort(pu.getIntPropertie("url.monitor.port"));
-            register.setStatus(pu.getIntPropertie("url.monitor.status"));
-            register.setType(pu.getIntPropertie("url.monitor.type"));
-
             connection = new Connection(host, port, context, uri);
             connection.openConnection();
-            connection.sendText("register", new Gson().toJson(register));
+            connection.sendText("alarm", new Gson().toJson(alarm));           
 
-            message = connection.receiveText();
-
-            if (message == null || message.length() < 1) {
-                logger.error("null message from server");
-                System.exit(-1);
-            } else {
-                logger.info(message);
-            }
-
-        }catch(ConnectException ce){    
-            logger.error("connection refused from main server");
         } catch (IOException e) {
-            logger.error("registerApplication", e);
-            System.exit(-1);
+            logger.error("registerApplication", e);            
         } finally {
             closeConnection();
         }
@@ -74,7 +55,7 @@ public class RegisterApplication {
         host = pu.getStringPropertie("url.monitor.register.host");
         port = pu.getIntPropertie("url.monitor.register.port");
         context = pu.getStringPropertie("url.monitor.register.context");
-        uri = pu.getStringPropertie("url.monitor.register.uri");
+        uri = pu.getStringPropertie("url.monitor.alarm.uri");
     } // end initVariables
 
     //==========================================================================
